@@ -1,0 +1,38 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Public read and write for all heritage collections (open public heritage archive)
+    match /heritages/{heritageId} {
+      allow read: if true;
+      allow write: if true;
+    }
+    match /proposals/{proposalId} {
+      allow read: if true;
+      allow create, update, delete: if true;
+    }
+    match /versions/{versionId} {
+      allow read: if true;
+      allow write: if true;
+    }
+    match /feedback/{feedbackId} {
+      allow read: if true;
+      allow create, update, delete: if true;
+    }
+    match /travelers/{travelerId} {
+      allow read: if true;
+      allow create, update, delete: if true;
+    }
+    match /auditEvents/{eventId} {
+      allow read: if true;
+      allow write: if true;
+    }
+    match /metrics/{metricId} {
+      allow read: if true;
+      allow write: if true;
+    }
+    match /users/{userId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+  }
+}

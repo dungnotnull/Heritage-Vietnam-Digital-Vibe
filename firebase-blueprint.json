@@ -1,0 +1,81 @@
+{
+  "entities": {
+    "Heritage": {
+      "collection": "heritages",
+      "fields": {
+        "titleVi": { "type": "string" },
+        "titleEn": { "type": "string" },
+        "category": { "type": "string" },
+        "region": { "type": "string" },
+        "province": { "type": "string" },
+        "unescoYear": { "type": "number" },
+        "nationalYear": { "type": "number" },
+        "summaryVi": { "type": "string" },
+        "summaryEn": { "type": "string" },
+        "groundedFacts": { "type": "array" },
+        "sources": { "type": "array" },
+        "promptSeedVi": { "type": "string" },
+        "promptSeedEn": { "type": "string" },
+        "heroImage": { "type": "string" },
+        "tags": { "type": "array" },
+        "artisanVillage": { "type": "string" },
+        "coordinates": { "type": "map" }
+      }
+    },
+    "Proposal": {
+      "collection": "proposals",
+      "fields": {
+        "heritageId": { "type": "string" },
+        "heritageTitle": { "type": "string" },
+        "author": { "type": "string" },
+        "changeType": { "type": "string" },
+        "description": { "type": "string" },
+        "originalText": { "type": "string" },
+        "proposedText": { "type": "string" },
+        "evidenceSource": { "type": "string" },
+        "evalScore": { "type": "number" },
+        "status": { "type": "string" },
+        "submittedAt": { "type": "string" }
+      }
+    },
+    "Version": {
+      "collection": "versions",
+      "fields": {
+        "version": { "type": "string" },
+        "timestamp": { "type": "string" },
+        "author": { "type": "string" },
+        "changelog": { "type": "string" },
+        "itemsCount": { "type": "number" },
+        "status": { "type": "string" }
+      }
+    },
+    "Feedback": {
+      "collection": "feedback",
+      "fields": {
+        "heritageId": { "type": "string" },
+        "feedbackType": { "type": "string" },
+        "rating": { "type": "number" },
+        "comment": { "type": "string" },
+        "timestamp": { "type": "string" }
+      }
+    },
+    "Traveler": {
+      "collection": "travelers",
+      "fields": {
+        "heritageId": { "type": "string" },
+        "userName": { "type": "string" },
+        "travelDate": { "type": "string" },
+        "status": { "type": "string" },
+        "notesVi": { "type": "string" }
+      }
+    },
+    "User": {
+      "collection": "users",
+      "fields": {
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "createdAt": { "type": "string" }
+      }
+    }
+  }
+}

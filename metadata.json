@@ -1,0 +1,6 @@
+{
+  "name": "HeritageVibe",
+  "description": "Nền tảng khám phá và trải nghiệm Di sản Văn hóa Việt Nam đa phương tiện với 3D AR, bản đồ di sản trực quan, người kể chuyện di sản và tương tác thông minh.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
