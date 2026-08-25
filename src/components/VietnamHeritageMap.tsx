@@ -566,6 +566,7 @@ export const VietnamHeritageMap: React.FC<VietnamHeritageMapProps> = ({
 
       marker.on('click', () => {
         onSelectHeritage(item);
+        setSelectedIslandInfo(null); // đóng panel chủ quyền để hiện heritage detail
         map.flyTo(coords, Math.max(map.getZoom(), 8), { duration: 1.0 });
       });
     });

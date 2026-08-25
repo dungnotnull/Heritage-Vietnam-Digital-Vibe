@@ -376,6 +376,119 @@ export const HumanInTheLoop: React.FC<HumanInTheLoopProps> = ({
   if (!currentUser) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+
+        {/* ── Showcase hiển thị TRƯỚC khi đăng nhập ── */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+          {/* Card 1 — Tự học mỗi ngày */}
+          <div className="relative rounded-3xl overflow-hidden border border-emerald-500/30 shadow-xl bg-gradient-to-br from-stone-950 via-emerald-950/60 to-stone-950 p-6 sm:p-7 flex flex-col gap-4">
+            <div className="absolute -top-10 -right-10 w-52 h-52 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="relative flex items-start gap-4">
+              <div className="w-14 h-14 flex-shrink-0 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-900/40">
+                <span className="text-2xl select-none">🧠</span>
+              </div>
+              <div>
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-[10px] font-bold uppercase tracking-widest mb-1.5">
+                  <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse inline-block" />
+                  {language === 'vi' ? 'Hệ thống Tự học' : 'Self-Learning System'}
+                </div>
+                <h3 className="text-base sm:text-lg font-bold font-heritage text-white leading-tight">
+                  {language === 'vi' ? 'Tự động cập nhật kiến thức mỗi ngày' : 'Knowledge auto-updated every day'}
+                </h3>
+              </div>
+            </div>
+            <p className="relative text-sm text-stone-300 leading-relaxed">
+              {language === 'vi'
+                ? 'HeritageVibe tự động tìm kiếm, đối chiếu và bổ sung thông tin về các di sản mới từ những nguồn đáng tin cậy như UNESCO, Bộ Văn hóa và các học viện uy tín — hoàn toàn tự động, không cần can thiệp thủ công.'
+                : 'HeritageVibe automatically scans, cross-references and enriches heritage data daily from trusted sources like UNESCO, Ministry of Culture, and academic institutions — fully automated, no manual effort required.'}
+            </p>
+            <div className="relative flex flex-wrap gap-2 text-[11px]">
+              {[
+                { icon: '📅', vi: 'Cập nhật mỗi ngày', en: 'Updates daily' },
+                { icon: '🌐', vi: 'Nguồn UNESCO & học viện', en: 'UNESCO & academic sources' },
+                { icon: '🔍', vi: 'Tự đối chiếu & kiểm tra', en: 'Auto cross-reference' },
+                { icon: '🔒', vi: 'Chỉ lưu dữ liệu đã thẩm định', en: 'Only verified data stored' },
+              ].map((chip, i) => (
+                <span key={i} className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-950/80 border border-emerald-700/50 text-emerald-200 font-semibold">
+                  <span>{chip.icon}</span>
+                  <span>{language === 'vi' ? chip.vi : chip.en}</span>
+                </span>
+              ))}
+            </div>
+            <div className="relative flex items-center gap-3 mt-auto pt-4 border-t border-emerald-900/40">
+              <div className="flex items-center gap-1.5 text-xs text-emerald-400 font-bold">
+                <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
+                {language === 'vi' ? 'Đang hoạt động' : 'Active now'}
+              </div>
+              <span className="text-[10px] text-stone-500">•</span>
+              <span className="text-[11px] text-stone-400">
+                {language === 'vi' ? `${heritages.length} di sản đang được theo dõi` : `${heritages.length} heritages monitored`}
+              </span>
+            </div>
+          </div>
+
+          {/* Card 2 — Tự cải thiện qua phản hồi cộng đồng */}
+          <div className="relative rounded-3xl overflow-hidden border border-amber-500/30 shadow-xl bg-gradient-to-br from-stone-950 via-amber-950/60 to-stone-950 p-6 sm:p-7 flex flex-col gap-4">
+            <div className="absolute -top-10 -left-10 w-52 h-52 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-orange-500/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="relative flex items-start gap-4">
+              <div className="w-14 h-14 flex-shrink-0 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-900/40">
+                <span className="text-2xl select-none">💡</span>
+              </div>
+              <div>
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-400/40 text-amber-300 text-[10px] font-bold uppercase tracking-widest mb-1.5">
+                  <span className="w-1.5 h-1.5 bg-amber-400 rounded-full animate-pulse inline-block" />
+                  {language === 'vi' ? 'Tự cải thiện' : 'Self-Improving'}
+                </div>
+                <h3 className="text-base sm:text-lg font-bold font-heritage text-white leading-tight">
+                  {language === 'vi' ? 'Ngày càng chính xác hơn nhờ bạn' : 'Gets smarter with every contribution'}
+                </h3>
+              </div>
+            </div>
+            <p className="relative text-sm text-stone-300 leading-relaxed">
+              {language === 'vi'
+                ? 'Mỗi góp ý, chỉnh sửa hoặc di sản mới do cộng đồng đề xuất đều được hệ thống ghi nhận, kiểm tra và — sau khi được chuyên gia thẩm định — tự động cập nhật vào kho tri thức. Website không bao giờ "đứng yên".'
+                : 'Every community suggestion, correction, or newly proposed heritage is recorded, reviewed by experts, and automatically merged into the knowledge base. The platform never stands still.'}
+            </p>
+            <div className="relative flex items-center gap-1 flex-wrap text-[10px] font-bold">
+              {[
+                { icon: '✍️', vi: 'Cộng đồng đề xuất', en: 'Community proposes' },
+                { icon: '→', vi: '', en: '' },
+                { icon: '🔎', vi: 'AI kiểm tra chéo', en: 'AI cross-checks' },
+                { icon: '→', vi: '', en: '' },
+                { icon: '✅', vi: 'Chuyên gia duyệt', en: 'Expert approves' },
+                { icon: '→', vi: '', en: '' },
+                { icon: '🚀', vi: 'Phát hành phiên bản mới', en: 'New version released' },
+              ].map((step, i) =>
+                step.vi === '' ? (
+                  <span key={i} className="text-amber-600 text-sm">{step.icon}</span>
+                ) : (
+                  <span key={i} className="flex items-center gap-1 px-2 py-1 rounded-lg bg-amber-950/80 border border-amber-700/50 text-amber-200">
+                    <span>{step.icon}</span>
+                    <span>{language === 'vi' ? step.vi : step.en}</span>
+                  </span>
+                )
+              )}
+            </div>
+            <div className="relative grid grid-cols-3 gap-3 mt-auto pt-4 border-t border-amber-900/40">
+              {[
+                { val: proposals.length.toString(), vi: 'Đề xuất', en: 'Proposals' },
+                { val: feedback.length.toString(), vi: 'Góp ý', en: 'Feedbacks' },
+                { val: versions.length.toString(), vi: 'Phiên bản', en: 'Versions' },
+              ].map((stat, i) => (
+                <div key={i} className="text-center">
+                  <div className="text-xl font-bold font-mono text-amber-300">{stat.val}</div>
+                  <div className="text-[10px] text-stone-400 font-semibold mt-0.5">
+                    {language === 'vi' ? stat.vi : stat.en}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+        {/* ── / Showcase ── */}
+
         <div className="rounded-3xl bg-stone-900 border border-amber-900/40 p-6 sm:p-8 text-stone-100 shadow-xl space-y-2 text-center max-w-2xl mx-auto">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-bold uppercase">
             <Lock className="w-3.5 h-3.5" />
@@ -462,6 +575,142 @@ export const HumanInTheLoop: React.FC<HumanInTheLoopProps> = ({
             : 'HeritageVibe empowers the community to curate and propose full new heritage items and updates, guarded by a strict Human-in-the-Loop review, Firestore synchronization, and release mechanism.'}
         </p>
       </div>
+
+      {/* ═══════════════════════════════════════════════════════════════
+          LIVING INTELLIGENCE SHOWCASE — Nổi bật cho Ban Giám Khảo
+          ═══════════════════════════════════════════════════════════════ */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+        {/* Card 1 — Tự học mỗi ngày */}
+        <div className="relative rounded-3xl overflow-hidden border border-emerald-500/30 shadow-xl bg-gradient-to-br from-stone-950 via-emerald-950/60 to-stone-950 p-6 sm:p-7 flex flex-col gap-4">
+          {/* Glow */}
+          <div className="absolute -top-10 -right-10 w-52 h-52 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
+
+          {/* Header */}
+          <div className="relative flex items-start gap-4">
+            <div className="w-14 h-14 flex-shrink-0 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-900/40">
+              <span className="text-2xl select-none">🧠</span>
+            </div>
+            <div>
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-[10px] font-bold uppercase tracking-widest mb-1.5">
+                <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse inline-block" />
+                {language === 'vi' ? 'Hệ thống Tự học' : 'Self-Learning System'}
+              </div>
+              <h3 className="text-base sm:text-lg font-bold font-heritage text-white leading-tight">
+                {language === 'vi'
+                  ? 'Tự động cập nhật kiến thức mỗi ngày'
+                  : 'Knowledge auto-updated every day'}
+              </h3>
+            </div>
+          </div>
+
+          {/* Description */}
+          <p className="relative text-sm text-stone-300 leading-relaxed">
+            {language === 'vi'
+              ? 'HeritageVibe tự động tìm kiếm, đối chiếu và bổ sung thông tin về các di sản mới từ những nguồn đáng tin cậy như UNESCO, Bộ Văn hóa và các học viện uy tín — hoàn toàn tự động, không cần can thiệp thủ công.'
+              : 'HeritageVibe automatically scans, cross-references and enriches heritage data daily from trusted sources like UNESCO, Ministry of Culture, and academic institutions — fully automated, no manual effort required.'}
+          </p>
+
+          {/* Feature Chips */}
+          <div className="relative flex flex-wrap gap-2 text-[11px]">
+            {[
+              { icon: '📅', vi: 'Cập nhật mỗi ngày', en: 'Updates daily' },
+              { icon: '🌐', vi: 'Nguồn UNESCO & học viện', en: 'UNESCO & academic sources' },
+              { icon: '🔍', vi: 'Tự đối chiếu & kiểm tra', en: 'Auto cross-reference' },
+              { icon: '🔒', vi: 'Chỉ lưu dữ liệu đã thẩm định', en: 'Only verified data stored' },
+            ].map((chip, i) => (
+              <span key={i} className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-950/80 border border-emerald-700/50 text-emerald-200 font-semibold">
+                <span>{chip.icon}</span>
+                <span>{language === 'vi' ? chip.vi : chip.en}</span>
+              </span>
+            ))}
+          </div>
+
+          {/* Live status bar */}
+          <div className="relative flex items-center gap-3 mt-auto pt-4 border-t border-emerald-900/40">
+            <div className="flex items-center gap-1.5 text-xs text-emerald-400 font-bold">
+              <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
+              {language === 'vi' ? 'Đang hoạt động' : 'Active now'}
+            </div>
+            <span className="text-[10px] text-stone-500">•</span>
+            <span className="text-[11px] text-stone-400">
+              {language === 'vi' ? `${heritages.length} di sản đang được theo dõi` : `${heritages.length} heritages monitored`}
+            </span>
+          </div>
+        </div>
+
+        {/* Card 2 — Tự cải thiện qua phản hồi cộng đồng */}
+        <div className="relative rounded-3xl overflow-hidden border border-amber-500/30 shadow-xl bg-gradient-to-br from-stone-950 via-amber-950/60 to-stone-950 p-6 sm:p-7 flex flex-col gap-4">
+          {/* Glow */}
+          <div className="absolute -top-10 -left-10 w-52 h-52 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-orange-500/10 rounded-full blur-3xl pointer-events-none" />
+
+          {/* Header */}
+          <div className="relative flex items-start gap-4">
+            <div className="w-14 h-14 flex-shrink-0 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-900/40">
+              <span className="text-2xl select-none">💡</span>
+            </div>
+            <div>
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-400/40 text-amber-300 text-[10px] font-bold uppercase tracking-widest mb-1.5">
+                <span className="w-1.5 h-1.5 bg-amber-400 rounded-full animate-pulse inline-block" />
+                {language === 'vi' ? 'Tự cải thiện' : 'Self-Improving'}
+              </div>
+              <h3 className="text-base sm:text-lg font-bold font-heritage text-white leading-tight">
+                {language === 'vi'
+                  ? 'Ngày càng chính xác hơn nhờ bạn'
+                  : 'Gets smarter with every contribution'}
+              </h3>
+            </div>
+          </div>
+
+          {/* Description */}
+          <p className="relative text-sm text-stone-300 leading-relaxed">
+            {language === 'vi'
+              ? 'Mỗi góp ý, chỉnh sửa hoặc di sản mới do cộng đồng đề xuất đều được hệ thống ghi nhận, kiểm tra và — sau khi được chuyên gia thẩm định — tự động cập nhật vào kho tri thức. Website không bao giờ "đứng yên".'
+              : 'Every community suggestion, correction, or newly proposed heritage is recorded, reviewed by experts, and automatically merged into the knowledge base. The platform never stands still.'}
+          </p>
+
+          {/* Workflow visual */}
+          <div className="relative flex items-center gap-1 flex-wrap text-[10px] font-bold">
+            {[
+              { icon: '✍️', vi: 'Cộng đồng đề xuất', en: 'Community proposes' },
+              { icon: '→', vi: '', en: '' },
+              { icon: '🔎', vi: 'AI kiểm tra chéo', en: 'AI cross-checks' },
+              { icon: '→', vi: '', en: '' },
+              { icon: '✅', vi: 'Chuyên gia duyệt', en: 'Expert approves' },
+              { icon: '→', vi: '', en: '' },
+              { icon: '🚀', vi: 'Phát hành phiên bản mới', en: 'New version released' },
+            ].map((step, i) =>
+              step.vi === '' ? (
+                <span key={i} className="text-amber-600 text-sm">{step.icon}</span>
+              ) : (
+                <span key={i} className="flex items-center gap-1 px-2 py-1 rounded-lg bg-amber-950/80 border border-amber-700/50 text-amber-200">
+                  <span>{step.icon}</span>
+                  <span>{language === 'vi' ? step.vi : step.en}</span>
+                </span>
+              )
+            )}
+          </div>
+
+          {/* Stats */}
+          <div className="relative grid grid-cols-3 gap-3 mt-auto pt-4 border-t border-amber-900/40">
+            {[
+              { val: proposals.length.toString(), vi: 'Đề xuất', en: 'Proposals' },
+              { val: feedback.length.toString(), vi: 'Góp ý', en: 'Feedbacks' },
+              { val: versions.length.toString(), vi: 'Phiên bản', en: 'Versions' },
+            ].map((stat, i) => (
+              <div key={i} className="text-center">
+                <div className="text-xl font-bold font-mono text-amber-300">{stat.val}</div>
+                <div className="text-[10px] text-stone-400 font-semibold mt-0.5">
+                  {language === 'vi' ? stat.vi : stat.en}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+      {/* ═══════════════════════════════════════════════════════════════ */}
 
       {/* Main Grid: Pending Approval Queue & Contribution Console */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
