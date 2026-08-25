@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
+import { Helmet } from 'react-helmet-async';
 import { 
   X, 
   Play, 
@@ -88,8 +90,8 @@ export const HeritageDetailModal: React.FC<HeritageDetailModalProps> = ({
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto bg-stone-950/80 backdrop-blur-md animate-fade-in">
+  const modalContent = (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 overflow-y-auto bg-stone-950/80 backdrop-blur-md animate-fade-in">
       <div 
         className="relative w-full max-w-4xl bg-white rounded-3xl shadow-2xl border border-stone-200 overflow-hidden my-auto max-h-[92vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
@@ -431,5 +433,18 @@ export const HeritageDetailModal: React.FC<HeritageDetailModalProps> = ({
         </div>
       </div>
     </div>
+  );
+
+  return (
+    <>
+      <Helmet>
+        <title>{isVi ? heritage.titleVi : heritage.titleEn} | HeritageVibe</title>
+        <meta name="description" content={isVi ? heritage.summaryVi : heritage.summaryEn} />
+        <meta property="og:title" content={isVi ? heritage.titleVi : heritage.titleEn} />
+        <meta property="og:description" content={isVi ? heritage.summaryVi : heritage.summaryEn} />
+        <meta property="og:image" content={heritage.heroImage} />
+      </Helmet>
+      {createPortal(modalContent, document.body)}
+    </>
   );
 };

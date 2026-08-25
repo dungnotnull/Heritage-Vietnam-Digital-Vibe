@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express, { Request, Response } from 'express';
 import path from 'path';
 import { createServer as createViteServer } from 'vite';
@@ -6,6 +7,9 @@ import { INITIAL_HERITAGE_ITEMS, INITIAL_QUIZ_QUESTIONS, INITIAL_COLLECTIBLES, I
 import { INITIAL_METRICS, INITIAL_PROPOSALS, INITIAL_VERSIONS, INITIAL_FEEDBACK } from './src/data/selfImprovingStore.ts';
 import { INITIAL_TRAVELERS } from './src/data/communityTravelers.ts';
 import { HeritageItem, KnowledgeProposal, KnowledgeVersion, UserFeedback, ProofMetrics, AuditEvent, HeritageTraveler, PlannerTripRequest, PlannerTripPlan } from './src/types.ts';
+import { setupDailyLearningCron, runLearningJob } from './src/lib/cronLearning.ts';
+
+
 
 const app = express();
 const PORT = 3000;
@@ -19,6 +23,34 @@ let activeProposals: KnowledgeProposal[] = [...INITIAL_PROPOSALS];
 let activeFeedback: UserFeedback[] = [...INITIAL_FEEDBACK];
 let activeMetrics: ProofMetrics = { ...INITIAL_METRICS };
 let activeTravelers: HeritageTraveler[] = [...INITIAL_TRAVELERS];
+
+import { 
+  subscribeToHeritages, 
+  subscribeToVersions, 
+  subscribeToProposals, 
+  subscribeToFeedback, 
+  subscribeToTravelers,
+  seedFirestoreIfEmpty,
+  addTravelerToFirestore,
+  likeTravelerInFirestore,
+  addProposalToFirestore,
+  addFeedbackToFirestore,
+  addHeritageToFirestore,
+  approveProposalInFirestore,
+  rejectProposalInFirestore
+} from './src/lib/firebase.ts';
+
+// Initialize Firebase sync
+try {
+  seedFirestoreIfEmpty();
+  subscribeToHeritages((items) => { activeHeritageItems = items; });
+  subscribeToVersions((versions) => { activeVersions = versions; });
+  subscribeToProposals((proposals) => { activeProposals = proposals; });
+  subscribeToFeedback((feedback) => { activeFeedback = feedback; });
+  subscribeToTravelers((travelers) => { activeTravelers = travelers; });
+} catch (err) {
+  console.warn('Firebase sync failed on server:', err);
+}
 
 // Lazy Gemini client helper
 let genAIClient: GoogleGenAI | null = null;
@@ -63,7 +95,7 @@ function pcmToWav(pcmBuffer: Buffer, sampleRate = 24000, numChannels = 1, bitsPe
 }
 
 // Resilient Gemini generate helper with multi-model fallback and backoff retry
-const FALLBACK_MODELS = ['gemini-flash-latest', 'gemini-3.7-flash', 'gemini-3.1-flash-lite', 'gemini-2.5-flash'];
+const FALLBACK_MODELS = ['gemini-3.5-flash-lite','gemini-flash-latest', 'gemini-3.7-flash', 'gemini-2.5-flash'];
 
 async function generateGeminiWithFallback(
   ai: GoogleGenAI,
@@ -150,8 +182,50 @@ app.get('/api/knowledge', (req: Request, res: Response) => {
   });
 });
 
+app.get('/api/knowledge/map-points', (req: Request, res: Response) => {
+  const points = activeHeritageItems.map(item => ({
+    id: item.id,
+    titleVi: item.titleVi,
+    titleEn: item.titleEn,
+    category: item.category,
+    region: item.region,
+    province: item.province,
+    coordinates: item.coordinates,
+    heroImage: item.heroImage,
+    unescoYear: item.unescoYear,
+    summaryVi: item.summaryVi,
+    summaryEn: item.summaryEn
+  }));
+  res.json({ points });
+});
+
+app.get('/api/knowledge/paginated', (req: Request, res: Response) => {
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 20;
+  const startIndex = (page - 1) * limit;
+  const endIndex = page * limit;
+  const paginatedItems = activeHeritageItems.slice(startIndex, endIndex);
+  
+  res.json({
+    heritages: paginatedItems,
+    currentPage: page,
+    totalPages: Math.ceil(activeHeritageItems.length / limit),
+    totalItems: activeHeritageItems.length
+  });
+});
+
+app.get('/api/knowledge/detail/:id', (req: Request, res: Response) => {
+  const { id } = req.params;
+  const item = activeHeritageItems.find(h => h.id === id);
+  if (item) {
+    res.json(item);
+  } else {
+    res.status(404).json({ error: 'Heritage item not found' });
+  }
+});
+
 // 2.1 Create Complete New Heritage
-app.post('/api/heritage/create', (req: Request, res: Response) => {
+app.post('/api/heritage/create', async (req: Request, res: Response) => {
   try {
     const {
       titleVi,
@@ -217,54 +291,14 @@ app.post('/api/heritage/create', (req: Request, res: Response) => {
       youtubeTitleEn: `Heritage Documentary: ${titleEn?.trim() || titleVi.trim()}`,
     };
 
-    activeHeritageItems.unshift(newItem);
-
-    // Add to HITL proposals
-    const proposal: KnowledgeProposal = {
-      id: `prop-new-${Date.now()}`,
-      heritageId: newItem.id,
-      heritageTitle: newItem.titleVi,
-      author: authorName.trim() || 'Cộng tác viên Di sản',
-      changeType: 'new_heritage' as any,
-      description: `Khởi tạo toàn diện di sản mới: ${newItem.titleVi} (${newItem.province})`,
-      originalText: '',
-      proposedText: newItem.summaryVi,
-      evidenceSource: newItem.sources[0]?.name || 'Bộ Văn hóa, Thể thao và Du lịch',
-      evalScore: 99.0,
-      status: 'approved_applied',
-      submittedAt: new Date().toISOString(),
-      reviewedAt: new Date().toISOString(),
-      reviewedBy: 'Ban Thẩm định & Hệ thống Đồng bộ Tự động',
-      versionTarget: `v1.0.${activeVersions.length}`,
-    };
-
-    activeProposals.unshift(proposal);
-
-    // Update knowledge version
-    const newVersionNumber = `v1.0.${activeVersions.length}`;
-    const newVersion: KnowledgeVersion = {
-      version: newVersionNumber,
-      timestamp: new Date().toISOString(),
-      author: authorName || 'Cultural Contributor',
-      changelog: `[Thêm di sản mới] ${newItem.titleVi} (${newItem.province})`,
-      itemsCount: activeHeritageItems.length,
-      status: 'active',
-    };
-    activeVersions.forEach((v) => {
-      if (v.status === 'active') v.status = 'archived';
-    });
-    activeVersions.unshift(newVersion);
-    activeMetrics.improvementsApplied += 1;
-
-    logAuditEvent('proposal_created', `New Complete Heritage Created: ${newItem.titleVi}`, `Province: ${newItem.province} | Category: ${newItem.category} | Author: ${authorName}`);
-
-    res.json({
-      success: true,
-      heritage: newItem,
-      proposal,
-      totalCount: activeHeritageItems.length,
-      version: newVersionNumber,
-    });
+    try {
+      const { heritage, proposal, version } = await addHeritageToFirestore(newItem, authorName);
+      logAuditEvent('proposal_created', `Added Heritage: ${heritage.titleVi}`, `Category: ${heritage.category}`, 'success');
+      res.json({ success: true, heritage, proposal, version, totalCount: activeHeritageItems.length });
+    } catch (error) {
+      console.error('Error adding heritage to Firebase:', error);
+      res.status(500).json({ error: 'Failed to add heritage to Firebase' });
+    }
   } catch (error: any) {
     console.error('Error creating heritage:', error);
     res.status(500).json({ error: error?.message || 'Failed to create heritage item' });
@@ -611,6 +645,7 @@ ${contextText}`;
           });
         }
       } catch (err) {
+        console.log("err:::", err)
         // Handled silently by falling through to verified grounding
       }
     }
@@ -643,41 +678,46 @@ app.get('/api/travelers', (req: Request, res: Response) => {
   res.json({ travelers: activeTravelers });
 });
 
-app.post('/api/travelers', (req: Request, res: Response) => {
+app.post('/api/travelers', async (req: Request, res: Response) => {
   const { heritageId, userName, avatar, travelDate, status, statusTextVi, notesVi, photos, contactHint } = req.body;
   if (!heritageId || !userName || !notesVi) {
     return res.status(400).json({ error: 'Missing required traveler details' });
   }
 
-  const newPost: HeritageTraveler = {
-    id: `trv-${Date.now()}`,
-    heritageId,
-    userName,
-    avatar: avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
-    travelDate: travelDate || 'Sắp tới',
-    status: status || 'planning',
-    statusTextVi: statusTextVi || 'Lên lịch trải nghiệm văn hóa',
-    statusTextEn: 'Planning cultural visit',
-    notesVi,
-    notesEn: notesVi,
-    photos: photos && photos.length > 0 ? photos : ['https://images.unsplash.com/photo-1528127269322-539801943592?w=600&auto=format&fit=crop&q=80'],
-    likesCount: 1,
-    contactHint: contactHint || '',
-    createdAt: new Date().toISOString(),
-  };
+  try {
+    const newPost = await addTravelerToFirestore({
+      heritageId,
+      userName,
+      avatar: avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
+      travelDate: travelDate || 'Sắp tới',
+      status: status || 'planning',
+      statusTextVi: statusTextVi || 'Lên lịch trải nghiệm văn hóa',
+      statusTextEn: 'Planning cultural visit',
+      notesVi,
+      notesEn: notesVi,
+      photos: photos && photos.length > 0 ? photos : ['https://images.unsplash.com/photo-1528127269322-539801943592?w=600&auto=format&fit=crop&q=80'],
+      contactHint: contactHint || '',
+    });
 
-  activeTravelers.unshift(newPost);
-  logAuditEvent('feedback_logged', `New Traveler Connect: ${userName}`, `Joined ${heritageId} trip group`, 'success');
-
-  res.json({ success: true, traveler: newPost });
+    logAuditEvent('feedback_logged', `New Traveler Connect: ${userName}`, `Joined ${heritageId} trip group`, 'success');
+    res.json({ success: true, traveler: newPost });
+  } catch (error) {
+    console.error('Error adding traveler:', error);
+    res.status(500).json({ error: 'Failed to add traveler' });
+  }
 });
 
-app.post('/api/travelers/:id/like', (req: Request, res: Response) => {
+app.post('/api/travelers/:id/like', async (req: Request, res: Response) => {
   const { id } = req.params;
   const post = activeTravelers.find(t => t.id === id);
   if (post) {
-    post.likesCount += 1;
-    return res.json({ success: true, likesCount: post.likesCount });
+    try {
+      await likeTravelerInFirestore(id, post.likesCount);
+      return res.json({ success: true, likesCount: post.likesCount + 1 });
+    } catch (error) {
+      console.error('Error liking traveler:', error);
+      return res.status(500).json({ error: 'Failed to like traveler' });
+    }
   }
   res.status(404).json({ error: 'Traveler not found' });
 });
@@ -987,57 +1027,58 @@ QUY TẮC CỐT LÕI:
   }
 });
 
-app.post('/api/feedback/submit', (req: Request, res: Response) => {
+app.post('/api/feedback/submit', async (req: Request, res: Response) => {
   const { heritageId, feedbackType, rating, comment, userEmail, proposedChange } = req.body;
-  const newFeedback: UserFeedback = {
-    id: `fb-${Date.now()}`,
-    timestamp: new Date().toISOString(),
-    heritageId,
-    feedbackType: feedbackType || 'strength',
-    rating: Number(rating) || 5,
-    comment: comment || 'Đóng góp ý kiến',
-    userEmail: userEmail || 'community@heritagevibe.vn',
-    status: 'pending',
-    proposedChange,
-  };
+  try {
+    const newFeedback = await addFeedbackToFirestore({
+      heritageId,
+      feedbackType: feedbackType || 'strength',
+      rating: Number(rating) || 5,
+      comment: comment || 'Đóng góp ý kiến',
+      userEmail: userEmail || 'community@heritagevibe.vn',
+      proposedChange,
+    });
 
-  activeFeedback.unshift(newFeedback);
-  activeMetrics.totalFeedbackCount += 1;
-  logAuditEvent('feedback_logged', `Feedback Logged: [${newFeedback.feedbackType.toUpperCase()}]`, `Rating: ${newFeedback.rating}/5 - "${newFeedback.comment.slice(0, 40)}..."`, 'pending');
+    activeMetrics.totalFeedbackCount += 1;
+    logAuditEvent('feedback_logged', `Feedback Logged: [${newFeedback.feedbackType.toUpperCase()}]`, `Rating: ${newFeedback.rating}/5 - "${newFeedback.comment.slice(0, 40)}..."`, 'pending');
 
-  res.json({ success: true, feedback: newFeedback });
+    res.json({ success: true, feedback: newFeedback });
+  } catch (error) {
+    console.error('Error submitting feedback:', error);
+    res.status(500).json({ error: 'Failed to submit feedback' });
+  }
 });
 
 // 6. Propose Knowledge Update (Human-in-the-Loop Pipeline)
-app.post('/api/improvement/propose', (req: Request, res: Response) => {
+app.post('/api/improvement/propose', async (req: Request, res: Response) => {
   const { heritageId, author, changeType, description, originalText, proposedText, evidenceSource } = req.body;
   const heritage = activeHeritageItems.find((h) => h.id === heritageId);
 
-  const proposal: KnowledgeProposal = {
-    id: `prop-${Date.now()}`,
-    heritageId: heritageId || 'general',
-    heritageTitle: heritage ? heritage.titleVi : 'Cơ sở tri thức chung',
-    author: author || 'Cộng tác viên Văn hóa',
-    changeType: changeType || 'fact_update',
-    description: description || 'Đề xuất cập nhật dữ liệu di sản',
-    originalText: originalText || '',
-    proposedText: proposedText || '',
-    evidenceSource: evidenceSource || 'Bộ Văn hóa, Thể thao và Du lịch (2026)',
-    evalScore: 97.5,
-    status: 'pending_human_review',
-    submittedAt: new Date().toISOString(),
-    versionTarget: `v1.0.${activeVersions.length}`,
-  };
+  try {
+    const proposal = await addProposalToFirestore({
+      heritageId: heritageId || 'general',
+      heritageTitle: heritage ? heritage.titleVi : 'Cơ sở tri thức chung',
+      author: author || 'Cộng tác viên Văn hóa',
+      changeType: changeType || 'fact_update',
+      description: description || 'Đề xuất cập nhật dữ liệu di sản',
+      originalText: originalText || '',
+      proposedText: proposedText || '',
+      evidenceSource: evidenceSource || 'Bộ Văn hóa, Thể thao và Du lịch (2026)',
+      versionTarget: `v1.0.${activeVersions.length}`,
+    });
 
-  activeProposals.unshift(proposal);
-  activeMetrics.pendingProposals = activeProposals.filter((p) => p.status === 'pending_human_review').length;
-  logAuditEvent('proposal_created', `Knowledge Proposal Staged: ${proposal.heritageTitle}`, `Author: ${proposal.author} | Eval Score: ${proposal.evalScore}%`, 'pending');
+    activeMetrics.pendingProposals = activeProposals.filter((p) => p.status === 'pending_human_review').length + 1;
+    logAuditEvent('proposal_created', `Knowledge Proposal Staged: ${proposal.heritageTitle}`, `Author: ${proposal.author} | Eval Score: ${proposal.evalScore}%`, 'pending');
 
-  res.json({ success: true, proposal });
+    res.json({ success: true, proposal });
+  } catch (error) {
+    console.error('Error submitting proposal:', error);
+    res.status(500).json({ error: 'Failed to submit proposal' });
+  }
 });
 
 // 7. Human Review Action (Approve / Reject / Rollback)
-app.post('/api/improvement/action', (req: Request, res: Response) => {
+app.post('/api/improvement/action', async (req: Request, res: Response) => {
   const { proposalId, action, reviewerName, note, rollbackVersion } = req.body;
   const proposal = activeProposals.find((p) => p.id === proposalId);
 
@@ -1045,62 +1086,39 @@ app.post('/api/improvement/action', (req: Request, res: Response) => {
     return res.status(404).json({ error: 'Proposal not found' });
   }
 
-  if (action === 'approve') {
-    if (proposal) {
-      proposal.status = 'approved_applied';
-      proposal.reviewedAt = new Date().toISOString();
-      proposal.reviewedBy = reviewerName || 'Ban Thẩm định Di sản (Human Reviewer)';
-
-      // Apply to knowledge item if exists
-      const item = activeHeritageItems.find((h) => h.id === proposal.heritageId);
-      if (item && proposal.proposedText) {
-        item.groundedFacts.push(proposal.proposedText);
+  try {
+    if (action === 'approve') {
+      if (proposal) {
+        await approveProposalInFirestore(proposalId, proposal, reviewerName);
+        activeMetrics.improvementsApplied += 1;
+        activeMetrics.pendingProposals = Math.max(0, activeProposals.filter((p) => p.status === 'pending_human_review').length - 1);
+        logAuditEvent('human_approval', `Proposal Approved: ${proposal.id}`, `Approved by ${reviewerName || 'Human Reviewer'}`);
       }
-
-      // Bump version
-      const newVersionNumber = `v1.0.${activeVersions.length}`;
-      const newVersion: KnowledgeVersion = {
-        version: newVersionNumber,
-        timestamp: new Date().toISOString(),
-        author: reviewerName || 'Cultural Editorial Board',
-        changelog: `[Approved #${proposal.id}] ${proposal.description}`,
-        itemsCount: activeHeritageItems.length,
-        status: 'active',
-      };
-
+    } else if (action === 'reject') {
+      if (proposal) {
+        await rejectProposalInFirestore(proposalId, reviewerName);
+        activeMetrics.pendingProposals = Math.max(0, activeProposals.filter((p) => p.status === 'pending_human_review').length - 1);
+        logAuditEvent('proposal_created', `Proposal Rejected: ${proposal.id}`, `Reason: ${note || 'Unverified evidence source'}`);
+      }
+    } else if (action === 'rollback') {
+      activeMetrics.rolledBackCount += 1;
+      const targetVer = rollbackVersion || 'v1.0.0';
       activeVersions.forEach((v) => {
-        if (v.status === 'active') v.status = 'archived';
+        v.status = v.version === targetVer ? 'active' : 'archived';
       });
-      activeVersions.unshift(newVersion);
-
-      activeMetrics.improvementsApplied += 1;
-      activeMetrics.pendingProposals = activeProposals.filter((p) => p.status === 'pending_human_review').length;
-
-      logAuditEvent('human_approval', `Proposal Approved & Released: ${newVersionNumber}`, `Approved by ${proposal.reviewedBy} | Verified: 100%`);
+      logAuditEvent('rollback', `Safety Rollback Executed to ${targetVer}`, `Author: Human Admin | Stability Verified`);
     }
-  } else if (action === 'reject') {
-    if (proposal) {
-      proposal.status = 'rejected';
-      proposal.reviewedAt = new Date().toISOString();
-      proposal.reviewedBy = reviewerName || 'Human Reviewer';
-      activeMetrics.pendingProposals = activeProposals.filter((p) => p.status === 'pending_human_review').length;
-      logAuditEvent('proposal_created', `Proposal Rejected: ${proposal.id}`, `Reason: ${note || 'Unverified evidence source'}`);
-    }
-  } else if (action === 'rollback') {
-    activeMetrics.rolledBackCount += 1;
-    const targetVer = rollbackVersion || 'v1.0.0';
-    activeVersions.forEach((v) => {
-      v.status = v.version === targetVer ? 'active' : 'archived';
+
+    res.json({
+      success: true,
+      proposals: activeProposals,
+      versions: activeVersions,
+      metrics: activeMetrics,
     });
-    logAuditEvent('rollback', `Safety Rollback Executed to ${targetVer}`, `Author: Human Admin | Stability Verified`);
+  } catch (error) {
+    console.error(`Error processing action ${action}:`, error);
+    res.status(500).json({ error: `Failed to process ${action}` });
   }
-
-  res.json({
-    success: true,
-    proposals: activeProposals,
-    versions: activeVersions,
-    metrics: activeMetrics,
-  });
 });
 
 // 8. Log Interactive Metric Event (Quiz, Streaks, Artisan Footfall)
@@ -1131,6 +1149,24 @@ app.get('/api/metrics', (req: Request, res: Response) => {
   });
 });
 
+// 10. Force AI Learning Job (For Manual Testing)
+app.get('/api/force-learning', async (req: Request, res: Response) => {
+  try {
+    const result = await runLearningJob(
+      getGenAI,
+      generateGeminiWithFallback,
+      () => activeHeritageItems,
+      (newItems) => {
+        activeHeritageItems.push(...newItems);
+      },
+      logAuditEvent
+    );
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: String(error) });
+  }
+});
+
 // Vite middleware for development & static serving for production
 async function startServer() {
   if (process.env.NODE_ENV !== 'production') {
@@ -1149,6 +1185,17 @@ async function startServer() {
 
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`HeritageVibe server running at http://0.0.0.0:${PORT}`);
+    
+    // Start AI Learning Cron
+    setupDailyLearningCron(
+      getGenAI,
+      generateGeminiWithFallback,
+      () => activeHeritageItems,
+      (newItems) => {
+        activeHeritageItems.push(...newItems);
+      },
+      logAuditEvent
+    );
   });
 }
 

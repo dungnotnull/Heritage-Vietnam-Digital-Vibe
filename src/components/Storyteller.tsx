@@ -7,6 +7,7 @@ import { CommunityTravelers } from './CommunityTravelers';
 import { HeritageDetailModal } from './HeritageDetailModal';
 import { MarkdownRenderer } from './MarkdownRenderer';
 import { VietnamFlag } from './VietnamFlag';
+import { useSEO } from '../hooks/useSEO';
 
 interface StorytellerProps {
   heritages: HeritageItem[];
@@ -23,6 +24,13 @@ export const Storyteller: React.FC<StorytellerProps> = ({
 }) => {
   const [selectedRegion, setSelectedRegion] = useState<'all' | 'north' | 'central' | 'south'>('all');
   const [selectedHeritage, setSelectedHeritage] = useState<HeritageItem>(heritages[0]);
+
+  useSEO({
+    title: language === 'vi' ? `${selectedHeritage.titleVi} | HeritageVibe` : `${selectedHeritage.titleEn} | HeritageVibe`,
+    description: language === 'vi' ? selectedHeritage.summaryVi : selectedHeritage.summaryEn,
+    image: selectedHeritage.heroImage,
+    url: `https://heritagevibe.vn/di-san/${selectedHeritage.id}`
+  });
   const [dialect, setDialect] = useState<DialectStyle>('bac-bo');
   const [customFocus, setCustomFocus] = useState('');
   const [detailModalHeritage, setDetailModalHeritage] = useState<HeritageItem | null>(null);
@@ -443,7 +451,7 @@ export const Storyteller: React.FC<StorytellerProps> = ({
   };
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div className="space-y-8 max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-14">
       
       {/* Top Banner: Cultural Atmosphere with Authentic Dong Son / Au Lac Bronze Drum */}
       <div className="relative rounded-3xl bg-stone-950 border border-amber-900/60 p-6 sm:p-10 shadow-2xl text-stone-100 min-h-[280px] sm:min-h-[320px] flex items-center z-30">
@@ -1002,7 +1010,7 @@ export const Storyteller: React.FC<StorytellerProps> = ({
                           <span className="font-bold">{activeVoiceTitle}</span>
                         </div>
                         {audioEngine === 'gemini-tts' && (
-                          <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                          <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-black text-amber-300 border border-amber-500/40">
                             Gemini High-Fi
                           </span>
                         )}

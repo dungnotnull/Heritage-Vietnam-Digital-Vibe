@@ -397,7 +397,7 @@ export const HumanInTheLoop: React.FC<HumanInTheLoopProps> = ({
   }
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div className="space-y-8 max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-14">
       
       {/* Top Banner: Self-Improving Status with Authenticated User Profile */}
       <div className="rounded-3xl bg-stone-900 border border-amber-900/40 p-6 sm:p-8 text-stone-100 shadow-xl space-y-4">

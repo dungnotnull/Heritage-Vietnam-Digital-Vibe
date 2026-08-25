@@ -46,7 +46,7 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <header 
       id="main-header" 
-      className="fixed top-0 left-0 right-0 z-50 w-full bg-[#FAF8F5]/95 backdrop-blur-md border-b border-amber-900/10 shadow-md shadow-amber-950/5 text-stone-900 transition-all"
+      className="fixed top-0 left-0 right-0 z-40 w-full bg-[#FAF8F5]/95 backdrop-blur-md border-b border-amber-900/10 shadow-md shadow-amber-950/5 text-stone-900 transition-all"
     >
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 gap-2 sm:gap-4">

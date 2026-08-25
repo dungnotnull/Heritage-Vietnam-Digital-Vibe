@@ -9,6 +9,7 @@ import { ProofDashboard } from './components/ProofDashboard';
 import { ArHeritageExperience } from './components/ArHeritageExperience';
 import { HeritageChatWidget } from './components/HeritageChatWidget';
 import { BackToTop } from './components/BackToTop';
+import { BackgroundMusic } from './components/BackgroundMusic';
 import { DongSonDrum } from './components/DongSonDrum';
 import { Language, HeritageItem, QuizQuestion, CollectibleBadge, ArtisanProfile, KnowledgeProposal, KnowledgeVersion, UserFeedback, ProofMetrics } from './types';
 import { INITIAL_HERITAGE_ITEMS, INITIAL_QUIZ_QUESTIONS, INITIAL_COLLECTIBLES, INITIAL_ARTISANS } from './data/heritageKnowledge';
@@ -135,7 +136,7 @@ export default function App() {
       />
 
       {/* Main View Router */}
-      <main className="flex-1 relative z-10 pt-16">
+      <main className="flex-1 relative z-10 pt-24 md:pt-16">
         {activeTab === 'story' && (
           <Storyteller
             heritages={heritages}
@@ -290,6 +291,9 @@ export default function App() {
         heritages={heritages}
         language={language}
       />
+
+      {/* Global Background Music */}
+      <BackgroundMusic />
 
       {/* Floating Back to Top Button */}
       <BackToTop language={language} />

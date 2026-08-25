@@ -8,12 +8,13 @@
 
   html {
     overflow-y: scroll;
+    font-size: 18px; /* Tăng cỡ chữ gốc từ 16px lên 18px để toàn website dễ nhìn hơn */
   }
 
   :root {
-    --font-serif: 'Spectral', 'Lora', 'Playfair Display', 'Noto Serif', Georgia, serif;
-    --font-sans: 'Be Vietnam Pro', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-    --font-display: 'Cinzel', 'Spectral', serif;
+    --font-serif: 'Playfair Display', 'Lora', 'Spectral', 'Noto Serif', Georgia, serif;
+    --font-sans: 'Quicksand', 'Nunito', system-ui, -apple-system, sans-serif;
+    --font-display: 'Cinzel', 'Playfair Display', serif;
   }
 
   body {

@@ -26,11 +26,22 @@ import {
   updateProfile,
   User
 } from 'firebase/auth';
-import firebaseConfig from '../../firebase-applet-config.json';
 import { INITIAL_HERITAGE_ITEMS } from '../data/heritageKnowledge';
 import { INITIAL_PROPOSALS, INITIAL_VERSIONS, INITIAL_FEEDBACK, INITIAL_METRICS } from '../data/selfImprovingStore';
 import { INITIAL_TRAVELERS } from '../data/communityTravelers';
 import { HeritageItem, KnowledgeProposal, KnowledgeVersion, UserFeedback, HeritageTraveler, ProofMetrics, AuditEvent } from '../types';
+
+const firebaseConfig = {
+  apiKey: typeof process !== 'undefined' && process.env.VITE_FIREBASE_API_KEY !== undefined ? process.env.VITE_FIREBASE_API_KEY : import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: typeof process !== 'undefined' && process.env.VITE_FIREBASE_AUTH_DOMAIN !== undefined ? process.env.VITE_FIREBASE_AUTH_DOMAIN : import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: typeof process !== 'undefined' && process.env.VITE_FIREBASE_PROJECT_ID !== undefined ? process.env.VITE_FIREBASE_PROJECT_ID : import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: typeof process !== 'undefined' && process.env.VITE_FIREBASE_STORAGE_BUCKET !== undefined ? process.env.VITE_FIREBASE_STORAGE_BUCKET : import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: typeof process !== 'undefined' && process.env.VITE_FIREBASE_MESSAGING_SENDER_ID !== undefined ? process.env.VITE_FIREBASE_MESSAGING_SENDER_ID : import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: typeof process !== 'undefined' && process.env.VITE_FIREBASE_APP_ID !== undefined ? process.env.VITE_FIREBASE_APP_ID : import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: typeof process !== 'undefined' && process.env.VITE_FIREBASE_MEASUREMENT_ID !== undefined ? process.env.VITE_FIREBASE_MEASUREMENT_ID : import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
+  oAuthClientId: typeof process !== 'undefined' && process.env.VITE_FIREBASE_OAUTH_CLIENT_ID !== undefined ? process.env.VITE_FIREBASE_OAUTH_CLIENT_ID : import.meta.env.VITE_FIREBASE_OAUTH_CLIENT_ID,
+  firestoreDatabaseId: typeof process !== 'undefined' && process.env.VITE_FIREBASE_FIRESTORE_DATABASE_ID !== undefined ? process.env.VITE_FIREBASE_FIRESTORE_DATABASE_ID : import.meta.env.VITE_FIREBASE_FIRESTORE_DATABASE_ID,
+};
 
 // Initialize Firebase App
 export const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();

@@ -137,7 +137,7 @@ const TILE_LAYERS = {
   heritageDark: {
     nameVi: 'Bản đồ Di sản (Cổ kính)',
     nameEn: 'Heritage Dark Map',
-    url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+    url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png',
     attribution: '&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
     subdomains: 'abcd',
     maxZoom: 19
@@ -150,10 +150,10 @@ const TILE_LAYERS = {
     maxZoom: 18
   },
   osmStandard: {
-    nameVi: 'Bản đồ Tiêu chuẩn (OpenStreetMap)',
-    nameEn: 'Standard OpenStreetMap',
-    url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    nameVi: 'Bản đồ Tiêu chuẩn (Không chữ)',
+    nameEn: 'Standard OpenStreetMap (No Labels)',
+    url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png',
+    attribution: '&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
     subdomains: 'abc',
     maxZoom: 19
   }
@@ -171,6 +171,7 @@ export const VietnamHeritageMap: React.FC<VietnamHeritageMapProps> = ({
   const markersLayerGroupRef = useRef<L.LayerGroup | null>(null);
   const boundaryLayerGroupRef = useRef<L.LayerGroup | null>(null);
   const tileLayerRef = useRef<L.TileLayer | null>(null);
+  const markersRef = useRef<Record<string, L.Marker>>({});
 
   const [activeTileKey, setActiveTileKey] = useState<keyof typeof TILE_LAYERS>('heritageDark');
   const [filterRegion, setFilterRegion] = useState<'all' | 'north' | 'central' | 'south' | 'islands'>('all');
@@ -181,6 +182,31 @@ export const VietnamHeritageMap: React.FC<VietnamHeritageMapProps> = ({
   const activeHeritage = useMemo(() => {
     return heritages.find((h) => h.id === selectedHeritageId) || heritages[0];
   }, [heritages, selectedHeritageId]);
+
+  
+  const getCustomIcon = (item: HeritageItem, isSelected: boolean, language: Language) => {
+    let badgeColor = 'bg-amber-600 border-amber-400 text-stone-950';
+    if (item.region === 'north') badgeColor = 'bg-orange-600 border-orange-300 text-white';
+    if (item.region === 'central') badgeColor = 'bg-rose-600 border-rose-300 text-white';
+    if (item.region === 'south') badgeColor = 'bg-cyan-600 border-cyan-300 text-white';
+    if (item.region === 'islands') badgeColor = 'bg-red-600 border-amber-300 text-amber-100 ring-2 ring-red-400';
+
+    return L.divIcon({
+      className: 'custom-heritage-pin-simple',
+      html: `
+        <div class="relative flex flex-col items-center justify-center cursor-pointer group">
+          <div class="rounded-full shadow-[0_0_10px_rgba(0,0,0,0.5)] border-[3px] w-6 h-6 flex items-center justify-center transition-transform duration-300 ${isSelected ? 'scale-125 z-50 animate-pulse' : 'hover:scale-125 hover:z-50 z-40'} ${badgeColor.split(' ')[0]} ${badgeColor.split(' ')[1]}">
+             <span class="w-2 h-2 bg-white rounded-full"></span>
+          </div>
+          <div class="absolute top-7 whitespace-nowrap bg-stone-900/90 text-amber-300 text-[10px] font-bold px-2 py-0.5 rounded shadow-sm border border-stone-700/50 ${isSelected ? 'block z-50' : 'hidden group-hover:block z-50'}">
+            ${language === 'vi' ? item.titleVi : item.titleEn}
+          </div>
+        </div>
+      `,
+      iconSize: [24, 24],
+      iconAnchor: [12, 12],
+    });
+  };
 
   // Coordinates helper for heritages
   const getHeritageLatLng = (item: HeritageItem): [number, number] => {
@@ -495,19 +521,19 @@ export const VietnamHeritageMap: React.FC<VietnamHeritageMapProps> = ({
       if (item.region === 'islands') badgeColor = 'bg-red-600 border-amber-300 text-amber-100 ring-2 ring-red-400';
 
       const customIcon = L.divIcon({
-        className: 'custom-heritage-pin',
+        className: 'custom-heritage-pin-simple',
         html: `
-          <div class="relative flex flex-col items-center -translate-x-1/2 -translate-y-full cursor-pointer group ${isSelected ? 'scale-125 z-50' : 'hover:scale-115'} transition-transform duration-200">
-            ${isSelected ? '<div class="absolute -top-3 w-10 h-10 rounded-full bg-amber-400/30 animate-ping"></div>' : ''}
-            <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full shadow-2xl border-2 backdrop-blur-md ${badgeColor}">
-              <span class="text-xs">🪘</span>
-              <span class="text-[10.5px] font-black tracking-tight whitespace-nowrap">${language === 'vi' ? item.titleVi.split(' ')[0] + ' ' + (item.titleVi.split(' ')[1] || '') : item.province.split('&')[0]}</span>
+          <div class="relative flex flex-col items-center justify-center cursor-pointer group">
+            <div class="rounded-full shadow-[0_0_10px_rgba(0,0,0,0.5)] border-[3px] w-6 h-6 flex items-center justify-center transition-transform duration-300 ${isSelected ? 'scale-125 z-50 animate-pulse' : 'hover:scale-125 hover:z-50 z-40'} ${badgeColor.split(' ')[0]} ${badgeColor.split(' ')[1]}">
+               <span class="w-2 h-2 bg-white rounded-full"></span>
             </div>
-            <div class="w-2.5 h-2.5 bg-stone-900 rotate-45 -mt-1.5 border-r-2 border-b-2 border-amber-400"></div>
+            <div class="absolute top-7 whitespace-nowrap bg-stone-900/90 text-amber-300 text-[10px] font-bold px-2 py-0.5 rounded shadow-sm border border-stone-700/50 ${isSelected ? 'block z-50' : 'hidden group-hover:block z-50'}">
+              ${language === 'vi' ? item.titleVi : item.titleEn}
+            </div>
           </div>
         `,
-        iconSize: [140, 45],
-        iconAnchor: [70, 45],
+        iconSize: [24, 24],
+        iconAnchor: [12, 12],
       });
 
       const marker = L.marker(coords, { icon: customIcon }).addTo(markersLayer);
@@ -544,7 +570,18 @@ export const VietnamHeritageMap: React.FC<VietnamHeritageMapProps> = ({
       });
     });
 
-  }, [heritages, selectedHeritageId, filterRegion, language]);
+  }, [heritages, filterRegion, language]);
+
+  // 5. Handle Selection Styles efficiently
+  useEffect(() => {
+    Object.entries(markersRef.current).forEach(([id, marker]) => {
+      const item = heritages.find(h => h.id === id);
+      if (item) {
+        const isSelected = id === selectedHeritageId;
+        marker.setIcon(getCustomIcon(item, isSelected, language));
+      }
+    });
+  }, [selectedHeritageId, heritages, language]);
 
   // Handle fly to selected heritage when updated externally
   const handleFlyToHeritage = (item: HeritageItem) => {
@@ -603,11 +640,11 @@ export const VietnamHeritageMap: React.FC<VietnamHeritageMapProps> = ({
           <div className="flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-sm">
               <Compass className="w-3.5 h-3.5 text-amber-400 animate-spin-slow" />
-              {language === 'vi' ? 'Bản Đồ GIS Chuẩn Thư Viện Leaflet' : 'Standard GIS Leaflet Geo-Engine'}
+              {language === 'vi' ? 'Bản Đồ Di Sản Việt Nam' : 'Vietnam Heritage Map'}
             </span>
             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-              {language === 'vi' ? '🇻🇳 Đầy đủ Hoàng Sa & Trường Sa' : '🇻🇳 Paracel & Spratly Sovereignty'}
+              {language === 'vi' ? 'Hoàng Sa & Trường Sa là của Việt Nam' : 'Hoàng Sa and Trường Sa are inseparable parts of Vietnam'}
             </span>
           </div>
           <h2 className="text-xl sm:text-2xl font-bold font-heritage text-stone-100 mt-2 flex items-center gap-2">
@@ -658,15 +695,15 @@ export const VietnamHeritageMap: React.FC<VietnamHeritageMapProps> = ({
             </button>
           </div>
 
-          <div className="h-5 w-px bg-stone-700 mx-0.5" />
+          {/* <div className="h-5 w-px bg-stone-700 mx-0.5" /> */}
 
-          <button
+          {/* <button
             onClick={() => setIsFullscreen(!isFullscreen)}
             className="p-1.5 rounded-xl text-stone-300 hover:text-amber-300 hover:bg-stone-800 transition-colors cursor-pointer"
             title={isFullscreen ? 'Thu nhỏ' : 'Toàn màn hình'}
           >
             <Maximize2 className="w-4 h-4" />
-          </button>
+          </button> */}
         </div>
       </div>
 
@@ -677,17 +714,17 @@ export const VietnamHeritageMap: React.FC<VietnamHeritageMapProps> = ({
           {language === 'vi' ? 'Điểm đến:' : 'Jump to:'}
         </span>
         {[
-          { id: 'all', labelVi: '🇻🇳 Toàn cảnh Việt Nam', action: () => handleQuickRegionFocus('all') },
-          { id: 'north', labelVi: '🏮 Bắc Bộ', action: () => handleQuickRegionFocus('north') },
-          { id: 'central', labelVi: '👑 Trung Bộ & Tây Nguyên', action: () => handleQuickRegionFocus('central') },
-          { id: 'south', labelVi: '🚣 Nam Bộ', action: () => handleQuickRegionFocus('south') },
-          { id: 'hoang-sa', labelVi: '★ Quần đảo Hoàng Sa (Đà Nẵng)', action: () => handleQuickRegionFocus('hoang-sa') },
-          { id: 'truong-sa', labelVi: '★ Quần đảo Trường Sa (Khánh Hòa)', action: () => handleQuickRegionFocus('truong-sa') },
+          { id: 'all', labelVi: 'Toàn cảnh Việt Nam', action: () => handleQuickRegionFocus('all') },
+          { id: 'north', labelVi: 'Bắc Bộ', action: () => handleQuickRegionFocus('north') },
+          { id: 'central', labelVi: 'Trung Bộ & Tây Nguyên', action: () => handleQuickRegionFocus('central') },
+          { id: 'south', labelVi: 'Nam Bộ', action: () => handleQuickRegionFocus('south') },
+          { id: 'hoang-sa', labelVi: 'Quần đảo Hoàng Sa (Đà Nẵng)', action: () => handleQuickRegionFocus('hoang-sa') },
+          { id: 'truong-sa', labelVi: 'Quần đảo Trường Sa (Khánh Hòa)', action: () => handleQuickRegionFocus('truong-sa') },
         ].map((tab) => (
           <button
             key={tab.id}
             onClick={tab.action}
-            className="px-2.5 py-1 rounded-xl text-xs font-semibold bg-stone-900 hover:bg-amber-500/20 hover:text-amber-300 text-stone-300 border border-stone-800 hover:border-amber-500/40 transition-all cursor-pointer"
+            className="px-2.5 py-1 rounded-xl text-xs font-semibold bg-stone-900 hover:bg-amber-500/20 hover:text-amber-300 text-stone-300 border border-white/60 hover:border-amber-500/40 transition-all cursor-pointer"
           >
             {tab.labelVi}
           </button>

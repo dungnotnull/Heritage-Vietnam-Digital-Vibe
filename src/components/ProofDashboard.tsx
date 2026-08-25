@@ -12,7 +12,7 @@ export const ProofDashboard: React.FC<ProofDashboardProps> = ({
   language,
 }) => {
   return (
-    <div className="space-y-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div className="space-y-8 max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-14">
       
       {/* Top Banner: Judge & Public Proof Notice */}
       <div className="rounded-3xl bg-stone-900 border border-emerald-500/40 p-6 sm:p-8 text-stone-100 shadow-xl space-y-3">
@@ -23,12 +23,12 @@ export const ProofDashboard: React.FC<ProofDashboardProps> = ({
           </div>
 
           <div className="text-xs font-semibold text-stone-400">
-            Engine: <span className="text-emerald-400 font-mono">Gemini 3.7 Flash Free Tier</span> • Grounding: <span className="text-amber-400 font-mono">UNESCO & VICAS</span>
+            Engine: <span className="text-emerald-400 font-mono">Gemini Models</span> • Grounding: <span className="text-amber-400 font-mono">UNESCO & VICAS</span>
           </div>
         </div>
 
         <h1 className="text-2xl sm:text-4xl font-bold font-heritage text-stone-50">
-          {language === 'vi' ? 'Bảng Chỉ Số Minh Bạch (/proof)' : 'Public Proof & Metrics Dashboard'}
+          {language === 'vi' ? 'Bảng Chỉ Số Minh Bạch' : 'Public Proof & Metrics Dashboard'}
         </h1>
 
         <p className="text-stone-300 text-sm max-w-3xl leading-relaxed">

@@ -67,7 +67,10 @@ export const AuthGate: React.FC<AuthGateProps> = ({ language, onSuccess }) => {
       if (onSuccess) onSuccess();
     } catch (err: any) {
       console.error('Google Sign In error:', err);
-      setErrorMsg(language === 'vi' ? 'Đăng nhập Google không thành công hoặc đã bị đóng.' : 'Google Sign-In failed or was cancelled.');
+      const detailedError = err?.message || err?.code || '';
+      setErrorMsg(language === 'vi' 
+        ? `Đăng nhập Google không thành công. Lỗi: ${detailedError}` 
+        : `Google Sign-In failed. Error: ${detailedError}`);
     } finally {
       setLoading(false);
     }
@@ -141,89 +144,7 @@ export const AuthGate: React.FC<AuthGateProps> = ({ language, onSuccess }) => {
             </svg>
             <span>{language === 'vi' ? 'Tiếp tục với Google' : 'Continue with Google'}</span>
           </button>
-
-          <div className="flex items-center gap-3 py-1">
-            <div className="flex-1 h-px bg-stone-800" />
-            <span className="text-[11px] text-stone-500 font-semibold uppercase tracking-wider">
-              {language === 'vi' ? 'Hoặc email' : 'Or with Email'}
-            </span>
-            <div className="flex-1 h-px bg-stone-800" />
-          </div>
         </div>
-
-        {/* Email & Password Form */}
-        <form onSubmit={handleSubmit} className="space-y-3.5 text-xs">
-          
-          {isRegister && (
-            <div>
-              <label className="block font-bold text-stone-300 mb-1">
-                {language === 'vi' ? 'Họ và tên người đóng góp *' : 'Display Name / Contributor *'}
-              </label>
-              <div className="relative">
-                <UserIcon className="w-4 h-4 text-stone-500 absolute left-3 top-3 pointer-events-none" />
-                <input
-                  type="text"
-                  required
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  placeholder="VD: TS. Nguyễn Văn An"
-                  className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-stone-950 border border-stone-800 focus:border-amber-500 text-stone-100 placeholder-stone-600 focus:outline-none"
-                />
-              </div>
-            </div>
-          )}
-
-          <div>
-            <label className="block font-bold text-stone-300 mb-1">
-              {language === 'vi' ? 'Địa chỉ Email *' : 'Email Address *'}
-            </label>
-            <div className="relative">
-              <Mail className="w-4 h-4 text-stone-500 absolute left-3 top-3 pointer-events-none" />
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="tennguoidung@example.com"
-                className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-stone-950 border border-stone-800 focus:border-amber-500 text-stone-100 placeholder-stone-600 focus:outline-none"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block font-bold text-stone-300 mb-1">
-              {language === 'vi' ? 'Mật khẩu (ít nhất 6 ký tự) *' : 'Password (min 6 characters) *'}
-            </label>
-            <div className="relative">
-              <Lock className="w-4 h-4 text-stone-500 absolute left-3 top-3 pointer-events-none" />
-              <input
-                type="password"
-                required
-                minLength={6}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-stone-950 border border-stone-800 focus:border-amber-500 text-stone-100 placeholder-stone-600 focus:outline-none"
-              />
-            </div>
-          </div>
-
-          {/* Submit Action Button */}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3 rounded-2xl bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-stone-950 font-bold text-sm shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-4"
-          >
-            {isRegister ? <UserPlus className="w-4 h-4" /> : <LogIn className="w-4 h-4" />}
-            <span>
-              {loading
-                ? (language === 'vi' ? 'Đang xử lý...' : 'Processing...')
-                : isRegister
-                ? (language === 'vi' ? 'Đăng Ký Tài Khoản' : 'Create Account')
-                : (language === 'vi' ? 'Đăng Nhập Vào Hệ Thống' : 'Sign In')}
-            </span>
-          </button>
-        </form>
 
         {/* Toggle Mode & Guest Option */}
         <div className="pt-3 border-t border-stone-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">

@@ -352,6 +352,14 @@ export const ArHeritageExperience: React.FC<ArHeritageExperienceProps> = ({
                 ? (language === 'vi' ? currentArtifact.subtitleVi : currentArtifact.subtitleEn)
                 : (language === 'vi' ? 'Quan sát vị trí địa lý thực tế 25 di sản & làng nghề truyền thống cả 3 miền' : 'Explore exact geographic locations of 25 UNESCO heritages & artisan villages')}
             </p>
+            {experienceMode === '3d' && (
+              <p className="text-[10px] text-amber-400/70 italic mt-0.5 flex items-center gap-1">
+                <span>⚠️</span>
+                {language === 'vi'
+                  ? 'Vật phẩm 3D chỉ mang tính chất demo'
+                  : '3D artifacts are for demonstration purposes only'}
+              </p>
+            )}
           </div>
         </div>
 
@@ -463,10 +471,10 @@ export const ArHeritageExperience: React.FC<ArHeritageExperienceProps> = ({
                   <button
                     key={artifact.id}
                     onClick={() => setSelectedArtifactId(artifact.id)}
-                    className={`flex-shrink-0 flex items-center gap-2 px-3.5 py-2 rounded-2xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                    className={`flex-shrink-0 flex items-center gap-2 px-3.5 py-2 rounded-2xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap border ${
                       isSelected
-                        ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-stone-950 font-bold shadow-md shadow-amber-500/25 scale-[1.02]'
-                        : 'bg-stone-800/80 text-stone-200 hover:bg-stone-800 hover:text-amber-300 border border-stone-700/60'
+                        ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-stone-950 shadow-md shadow-amber-500/25 scale-[1.02] border-transparent'
+                        : 'bg-stone-800/80 text-stone-200 hover:bg-stone-800 hover:text-amber-300 border-stone-700/60'
                     }`}
                   >
                     <span className="text-sm">{emoji}</span>

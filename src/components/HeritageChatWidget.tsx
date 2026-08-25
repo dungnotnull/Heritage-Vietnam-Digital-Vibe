@@ -105,11 +105,10 @@ export const HeritageChatWidget: React.FC<HeritageChatWidgetProps> = ({
     setLoading(true);
 
     try {
-      const res = await fetch('/api/story/chat', {
+      const res = await fetch('/api/chat/grounded', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          heritageId: activeHeritage?.id || 'all',
           query: textToSend,
           dialect,
           language,
@@ -193,7 +192,7 @@ export const HeritageChatWidget: React.FC<HeritageChatWidgetProps> = ({
       {isOpen && (
         <div 
           id="chat-agent-modal"
-          className="fixed bottom-6 right-4 sm:right-6 z-50 w-[94vw] sm:w-[440px] h-[580px] max-h-[85vh] bg-[#FAF8F5] rounded-3xl shadow-2xl border border-stone-300/80 flex flex-col overflow-hidden animate-fade-in text-stone-900"
+          className="fixed bottom-6 right-4 sm:right-6 z-[110] w-[94vw] sm:w-[440px] h-[580px] max-h-[85vh] bg-[#FAF8F5] rounded-3xl shadow-2xl border border-stone-300/80 flex flex-col overflow-hidden animate-fade-in text-stone-900"
         >
           {/* Header */}
           <div className="p-4 bg-gradient-to-r from-stone-900 via-stone-800 to-amber-950 text-white flex items-center justify-between gap-3 shadow-md flex-shrink-0">
@@ -232,26 +231,8 @@ export const HeritageChatWidget: React.FC<HeritageChatWidgetProps> = ({
             </div>
           </div>
 
-          {/* Subheader: Heritage Context Selector & Trust Mode Toggle */}
-          <div className="p-2.5 bg-stone-100 border-b border-stone-200 flex flex-wrap items-center justify-between gap-2 text-xs flex-shrink-0">
-            {/* Heritage Context Dropdown */}
-            <div className="flex items-center gap-1.5 flex-1 min-w-[180px]">
-              <span className="text-[10px] font-bold uppercase text-stone-500 whitespace-nowrap">
-                {isVi ? 'Bối cảnh:' : 'Context:'}
-              </span>
-              <select
-                value={activeHeritageId}
-                onChange={(e) => setActiveHeritageId(e.target.value)}
-                className="w-full text-xs font-semibold py-1 px-2 rounded-lg bg-white border border-stone-300 text-stone-800 focus:outline-none focus:ring-1 focus:ring-amber-500 truncate"
-              >
-                {heritages.map((h) => (
-                  <option key={h.id} value={h.id}>
-                    {isVi ? h.titleVi : h.titleEn} ({h.province})
-                  </option>
-                ))}
-              </select>
-            </div>
-
+          {/* Subheader: Trust Mode Toggle only */}
+          <div className="p-2.5 bg-stone-100 border-b border-stone-200 flex items-center justify-end gap-2 text-xs flex-shrink-0">
             {/* Mode Switcher */}
             <div className="flex items-center gap-1 bg-stone-200/80 p-0.5 rounded-xl border border-stone-300/80 text-[10px]">
               <button

@@ -76,7 +76,7 @@ export const DailyHabitLoop: React.FC<DailyHabitLoopProps> = ({
   ];
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div className="space-y-8 max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-14">
       
       {/* Header Banner: Habit Loop Motivation */}
       <div className="relative overflow-hidden rounded-3xl bg-stone-950 border border-amber-900/60 p-6 sm:p-8 text-stone-100 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-6">

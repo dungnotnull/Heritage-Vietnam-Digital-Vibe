@@ -1,37 +1,55 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Public read and write for all heritage collections (open public heritage archive)
+    
+    // Quy tắc dùng chung: Mọi user đều có quyền đọc (để web luôn hiển thị được nội dung)
+    match /{document=**} {
+      allow read: if true;
+    }
+
+    // Heritage (Di sản)
     match /heritages/{heritageId} {
-      allow read: if true;
-      allow write: if true;
+      // Chỉ user đã đăng nhập mới được tạo hoặc sửa (có thể siết lại cho Admin sau này)
+      allow write: if request.auth != null;
     }
+
+    // Proposals (Đề xuất tri thức)
     match /proposals/{proposalId} {
-      allow read: if true;
-      allow create, update, delete: if true;
+      // Mọi người (kể cả chưa đăng nhập) có thể đề xuất
+      allow create: if true;
+      // Chỉ Admin hoặc auth user mới được duyệt/xoá
+      allow update, delete: if request.auth != null;
     }
+
+    // Versions (Phiên bản tri thức)
     match /versions/{versionId} {
-      allow read: if true;
-      allow write: if true;
+      allow write: if request.auth != null;
     }
+
+    // Feedback (Đánh giá)
     match /feedback/{feedbackId} {
-      allow read: if true;
-      allow create, update, delete: if true;
+      // Bất kỳ ai cũng có thể gửi feedback
+      allow create: if true;
+      allow update, delete: if request.auth != null;
     }
+
+    // Travelers (Khách du lịch - Chuyến đi)
     match /travelers/{travelerId} {
-      allow read: if true;
-      allow create, update, delete: if true;
+      // Cho phép đăng tải chuyến đi nếu thông tin hợp lệ
+      allow create: if true;
+      // Cho phép mọi người like (cập nhật số like)
+      allow update: if request.resource.data.keys().hasOnly(['likesCount']) || request.auth != null;
+      allow delete: if request.auth != null;
     }
-    match /auditEvents/{eventId} {
-      allow read: if true;
-      allow write: if true;
-    }
+
+    // Metrics (Số liệu thống kê)
     match /metrics/{metricId} {
-      allow read: if true;
-      allow write: if true;
+      // Chỉ server hoặc admin mới được ghi trực tiếp
+      allow write: if request.auth != null;
     }
-    match /users/{userId} {
-      allow read: if true;
+
+    // Audit Events
+    match /auditEvents/{eventId} {
       allow write: if request.auth != null;
     }
   }
